@@ -1,6 +1,6 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState, AppThunk } from '../../app/store';
-import { fetchCount } from './counterAPI';
+import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {RootState} from '../../app/store';
+import {fetchCount} from './counterAPI';
 
 export interface CounterState {
   value: number;
@@ -19,9 +19,11 @@ const initialState: CounterState = {
 // typically used to make async requests.
 export const incrementAsync = createAsyncThunk(
   'counter/fetchCount',
-  async (amount: number) => {
+  async (amount: number, thunkApi: any) => {
     const response = await fetchCount(amount);
     // The value we return becomes the `fulfilled` action payload
+    // throw 12
+    // thunkApi.dispatch(incrementBy10())
     return response.data;
   }
 );
@@ -38,7 +40,11 @@ export const counterSlice = createSlice({
       // immutable state based off those changes
       state.value += 1;
     },
+    incrementBy10: (state) => {
+      state.value += 10;
+    },
     decrement: (state) => {
+      console.log("slice decr")
       state.value -= 1;
     },
     // Use the PayloadAction type to declare the contents of `action.payload`
@@ -52,6 +58,9 @@ export const counterSlice = createSlice({
     builder
       .addCase(incrementAsync.pending, (state) => {
         state.status = 'loading';
+      })
+      .addCase(incrementAsync.rejected, (state, test) => {
+        state.status = 'failed';
       })
       .addCase(incrementAsync.fulfilled, (state, action) => {
         state.status = 'idle';
@@ -69,9 +78,9 @@ export const selectCount = (state: RootState) => state.counter.value;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
-export const incrementIfOdd = (amount: number): AppThunk => (
-  dispatch,
-  getState
+export const incrementIfOdd = (amount: number) => (
+  dispatch: any,
+  getState: any
 ) => {
   const currentValue = selectCount(getState());
   if (currentValue % 2 === 1) {
